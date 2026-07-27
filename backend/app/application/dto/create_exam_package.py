@@ -1,4 +1,9 @@
 from dataclasses import dataclass
+from app.application.errors import (
+    PdfLayoutMismatchError,
+    TemplateMismatchError,
+)
+from app.application.ports.template_comparator import TemplateComparator
 
 
 @dataclass(frozen=True, slots=True)

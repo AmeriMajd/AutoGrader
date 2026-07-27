@@ -2,24 +2,28 @@ from app.application.dto.create_exam_package import (
     CreateExamPackageCommand,
 )
 from app.application.dto.pdf_inspection import PdfInspection
-from app.application.errors import PdfLayoutMismatchError
+from app.application.errors import (
+    PdfLayoutMismatchError,
+    TemplateMismatchError,
+)
+from app.application.ports.template_comparator import TemplateComparator
 from app.application.ports.exam_repository import ExamRepository
 from app.application.ports.file_storage import FileStorage
 from app.application.ports.pdf_inspector import PdfInspector
 from app.domain.entities.exam import Exam
 from app.domain.value_objects.document_reference import DocumentReference
-
-
 class CreateExamPackage:
     def __init__(
         self,
         exam_repository: ExamRepository,
         file_storage: FileStorage,
         pdf_inspector: PdfInspector,
+        template_comparator: TemplateComparator,
     ) -> None:
         self._exam_repository = exam_repository
         self._file_storage = file_storage
         self._pdf_inspector = pdf_inspector
+        self._template_comparator = template_comparator
 
     def execute(self, command: CreateExamPackageCommand) -> Exam:
         blank_inspection = self._pdf_inspector.inspect(command.blank_content)
@@ -31,6 +35,17 @@ class CreateExamPackage:
             blank_inspection,
             correction_inspection,
         )
+        template_comparison = self._template_comparator.compare(
+    blank_pdf=command.blank_content,
+    correction_pdf=command.correction_content,
+)
+
+        if not template_comparison.is_compatible:
+            raise TemplateMismatchError(
+        "Blank and corrected PDFs do not appear to be the same "
+        f"exam template. Similarity score: "
+        f"{template_comparison.overall_similarity_score:.3f}"
+    )
 
         exam = Exam.create(command.title)
 
@@ -81,7 +96,8 @@ class CreateExamPackage:
             size_bytes=inspection.size_bytes,
             page_count=inspection.page_count,
         )
-
+    """Two unrelated A4 PDFs can still pass because we currently validate only PDF structure 
+    and dimensions—not whether both files represent the same exam layout"""
     @staticmethod
     def _validate_matching_layout(
         blank: PdfInspection,

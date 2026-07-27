@@ -5,7 +5,11 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, s
 from app.application.dto.create_exam_package import (
     CreateExamPackageCommand,
 )
-from app.application.errors import InvalidPdfError, PdfLayoutMismatchError
+from app.application.errors import (
+    InvalidPdfError,
+    PdfLayoutMismatchError,
+    TemplateMismatchError,
+)
 from app.application.use_cases.create_exam_package import CreateExamPackage
 from app.presentation.api.schemas.exams import ExamResponse
 
@@ -56,7 +60,7 @@ async def create_exam_package(
                 correction_content=correction_content,
             )
         )
-    except (InvalidPdfError, PdfLayoutMismatchError, ValueError) as error:
+    except (InvalidPdfError, PdfLayoutMismatchError, TemplateMismatchError, ValueError) as error:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(error),

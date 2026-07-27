@@ -4,3 +4,7 @@ class InvalidPdfError(ValueError):
 
 class PdfLayoutMismatchError(ValueError):
     """Raised when the blank and corrected PDFs do not share a layout."""
+
+
+class TemplateMismatchError(ValueError):
+    """Raised when two PDFs do not appear to be the same exam template."""

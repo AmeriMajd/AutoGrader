@@ -12,16 +12,21 @@ from app.presentation.api.routers.exams import (
     get_create_exam_package_use_case,
     router as exams_router,
 )
+from app.infrastructure.imaging.opencv_template_comparator import (
+    OpenCvTemplateComparator,
+)
 
 
 exam_repository = InMemoryExamRepository()
 file_storage = LocalFileStorage(Path("data"))
 pdf_inspector = PypdfPdfInspector()
+template_comparator = OpenCvTemplateComparator()
 
 create_exam_package_use_case = CreateExamPackage(
     exam_repository=exam_repository,
     file_storage=file_storage,
     pdf_inspector=pdf_inspector,
+    template_comparator=template_comparator,
 )
 
 app = FastAPI(
