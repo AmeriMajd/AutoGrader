@@ -13,7 +13,6 @@ from app.application.errors import (
 from app.application.use_cases.create_exam_package import CreateExamPackage
 from app.presentation.api.schemas.exams import ExamResponse
 
-
 MAX_UPLOAD_SIZE_BYTES = 50 * 1024 * 1024
 
 router = APIRouter(
@@ -62,7 +61,7 @@ async def create_exam_package(
         )
     except (InvalidPdfError, PdfLayoutMismatchError, TemplateMismatchError, ValueError) as error:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=str(error),
         ) from error
 
@@ -81,13 +80,13 @@ async def _read_upload(
 
     if not content:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=f"{label} cannot be empty.",
         )
 
     if len(content) > MAX_UPLOAD_SIZE_BYTES:
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
             detail=f"{label} must be at most 50 MB.",
         )
 

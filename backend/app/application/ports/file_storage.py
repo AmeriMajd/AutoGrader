@@ -7,5 +7,9 @@ class FileStorage(Protocol):
         ...
 
     def read(self, *, key: str) -> bytes:
-        """Return stored content, or raise when the key does not exist."""
+        """Return stored content, or raise if it does not exist."""
+        ...
+
+    def delete(self, *, key: str) -> None:
+        """Delete stored content if it exists."""
         ...

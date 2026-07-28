@@ -3,6 +3,9 @@ from pathlib import Path
 from fastapi import FastAPI
 
 from app.application.use_cases.create_exam_package import CreateExamPackage
+from app.infrastructure.imaging.opencv_template_comparator import (
+    OpenCvTemplateComparator,
+)
 from app.infrastructure.pdf.pypdf_pdf_inspector import PypdfPdfInspector
 from app.infrastructure.persistence.in_memory_exam_repository import (
     InMemoryExamRepository,
@@ -10,12 +13,10 @@ from app.infrastructure.persistence.in_memory_exam_repository import (
 from app.infrastructure.storage.local_file_storage import LocalFileStorage
 from app.presentation.api.routers.exams import (
     get_create_exam_package_use_case,
+)
+from app.presentation.api.routers.exams import (
     router as exams_router,
 )
-from app.infrastructure.imaging.opencv_template_comparator import (
-    OpenCvTemplateComparator,
-)
-
 
 exam_repository = InMemoryExamRepository()
 file_storage = LocalFileStorage(Path("data"))
