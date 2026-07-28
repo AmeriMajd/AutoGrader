@@ -11,9 +11,7 @@ from app.infrastructure.pdf.pypdf_pdf_inspector import (
 
 
 def create_pdf(
-    page_sizes: tuple[tuple[float, float], ...] = (
-        (595.0, 842.0),
-    ),
+    page_sizes: tuple[tuple[float, float], ...] = ((595.0, 842.0),),
     rotations: tuple[int, ...] | None = None,
 ) -> bytes:
     writer = PdfWriter()
@@ -80,10 +78,7 @@ def test_inspects_multiple_pages_in_order(
     result = inspector.inspect(content)
 
     assert result.page_count == 3
-    assert [
-        (page.width_points, page.height_points)
-        for page in result.pages
-    ] == [
+    assert [(page.width_points, page.height_points) for page in result.pages] == [
         (595.0, 842.0),
         (612.0, 792.0),
         (400.0, 300.0),

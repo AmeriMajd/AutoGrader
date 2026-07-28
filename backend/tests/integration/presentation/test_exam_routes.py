@@ -76,9 +76,7 @@ def test_app(
     app = FastAPI()
     app.include_router(router)
 
-    app.dependency_overrides[
-        get_create_exam_package_use_case
-    ] = lambda: use_case_stub
+    app.dependency_overrides[get_create_exam_package_use_case] = lambda: use_case_stub
 
     return app
 
@@ -117,9 +115,7 @@ def test_creates_exam_package_from_multipart_upload(
     body = response.json()
 
     UUID(body["id"])
-    created_at = datetime.fromisoformat(
-        body["created_at"].replace("Z", "+00:00")
-    )
+    created_at = datetime.fromisoformat(body["created_at"].replace("Z", "+00:00"))
 
     assert created_at.utcoffset() == timedelta(0)
     assert body["title"] == "Year 5 Mathematics"
@@ -135,7 +131,8 @@ def test_creates_exam_package_from_multipart_upload(
     assert command.blank_content == BLANK_CONTENT
     assert command.correction_filename == "correction.pdf"
     assert command.correction_content == CORRECTION_CONTENT
-    
+
+
 def create_upload_files(
     *,
     blank_content: bytes = BLANK_CONTENT,
@@ -153,7 +150,8 @@ def create_upload_files(
             "application/pdf",
         ),
     }
-    
+
+
 def test_rejects_missing_title(
     client: TestClient,
     use_case_stub: StubCreateExamPackage,
@@ -192,9 +190,7 @@ def test_rejects_whitespace_only_title(
     )
 
     assert response.status_code == 422
-    assert response.json() == {
-        "detail": "Exam title cannot be empty"
-    }
+    assert response.json() == {"detail": "Exam title cannot be empty"}
     assert use_case_stub.commands == []
 
 
@@ -259,9 +255,7 @@ def test_rejects_empty_pdf(
     )
 
     assert response.status_code == 422
-    assert response.json() == {
-        "detail": expected_detail
-    }
+    assert response.json() == {"detail": expected_detail}
     assert use_case_stub.commands == []
 
 
@@ -311,9 +305,7 @@ def test_rejects_pdf_above_upload_limit(
     )
 
     assert response.status_code == 413
-    assert response.json() == {
-        "detail": expected_detail
-    }
+    assert response.json() == {"detail": expected_detail}
     assert use_case_stub.commands == []
 
 
@@ -383,9 +375,7 @@ def test_maps_expected_application_errors_to_422(
     )
 
     assert response.status_code == 422
-    assert response.json() == {
-        "detail": expected_detail
-    }
+    assert response.json() == {"detail": expected_detail}
     assert len(use_case_stub.commands) == 1
 
 
@@ -393,9 +383,7 @@ def test_unexpected_error_returns_500(
     test_app: FastAPI,
     use_case_stub: StubCreateExamPackage,
 ) -> None:
-    use_case_stub.error = RuntimeError(
-        "Unexpected internal failure"
-    )
+    use_case_stub.error = RuntimeError("Unexpected internal failure")
 
     with TestClient(
         test_app,

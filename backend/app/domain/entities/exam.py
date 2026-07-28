@@ -46,7 +46,4 @@ class Exam:
 
     @property
     def has_source_documents(self) -> bool:
-        return (
-            self.blank_document is not None
-            and self.correction_document is not None
-        )
+        return self.blank_document is not None and self.correction_document is not None

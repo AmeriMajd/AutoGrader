@@ -17,9 +17,7 @@ class PageDimensions:
         )
 
         if not dimensions_are_valid:
-            raise ValueError(
-                "PDF page dimensions must be finite and positive."
-            )
+            raise ValueError("PDF page dimensions must be finite and positive.")
 
 
 @dataclass(frozen=True, slots=True)
@@ -30,14 +28,10 @@ class PdfInspection:
 
     def __post_init__(self) -> None:
         if len(self.sha256) != 64:
-            raise ValueError(
-                "PDF SHA-256 hash must contain 64 characters."
-            )
+            raise ValueError("PDF SHA-256 hash must contain 64 characters.")
 
         if any(character not in hexdigits for character in self.sha256):
-            raise ValueError(
-                "PDF SHA-256 hash must be hexadecimal."
-            )
+            raise ValueError("PDF SHA-256 hash must be hexadecimal.")
 
         if self.size_bytes <= 0:
             raise ValueError("PDF size must be greater than zero.")

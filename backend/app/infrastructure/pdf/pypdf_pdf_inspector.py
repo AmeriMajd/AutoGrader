@@ -14,9 +14,7 @@ from app.application.errors import InvalidPdfError
 class PypdfPdfInspector:
     def inspect(self, content: bytes) -> PdfInspection:
         if not content.startswith(b"%PDF-"):
-            raise InvalidPdfError(
-                "Uploaded content is not a PDF."
-            )
+            raise InvalidPdfError("Uploaded content is not a PDF.")
 
         try:
             reader = PdfReader(
@@ -25,14 +23,10 @@ class PypdfPdfInspector:
             )
 
             if reader.is_encrypted:
-                raise InvalidPdfError(
-                    "Encrypted PDFs are not supported."
-                )
+                raise InvalidPdfError("Encrypted PDFs are not supported.")
 
             if len(reader.pages) == 0:
-                raise InvalidPdfError(
-                    "PDF must contain at least one page."
-                )
+                raise InvalidPdfError("PDF must contain at least one page.")
 
             pages: list[PageDimensions] = []
 
@@ -59,9 +53,7 @@ class PypdfPdfInspector:
             TypeError,
             OSError,
         ) as error:
-            raise InvalidPdfError(
-                "The uploaded PDF could not be read."
-            ) from error
+            raise InvalidPdfError("The uploaded PDF could not be read.") from error
 
         return PdfInspection(
             sha256=hashlib.sha256(content).hexdigest(),

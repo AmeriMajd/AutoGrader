@@ -34,9 +34,7 @@ def test_save_replaces_exam_with_same_id() -> None:
     repository.save(updated)
 
     assert repository.get_by_id(original.id) is updated
-    assert repository.get_by_id(original.id).title == (
-        "Updated title"
-    )
+    assert repository.get_by_id(original.id).title == ("Updated title")
 
 
 def test_repository_instances_do_not_share_state() -> None:

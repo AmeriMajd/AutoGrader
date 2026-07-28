@@ -59,7 +59,12 @@ async def create_exam_package(
                 correction_content=correction_content,
             )
         )
-    except (InvalidPdfError, PdfLayoutMismatchError, TemplateMismatchError, ValueError) as error:
+    except (
+        InvalidPdfError,
+        PdfLayoutMismatchError,
+        TemplateMismatchError,
+        ValueError,
+    ) as error:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=str(error),

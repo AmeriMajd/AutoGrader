@@ -59,10 +59,7 @@ def draw_exam_template(
         )
 
         if corrected:
-            answer = (
-                question_number + 2
-                + question_number + 3
-            )
+            answer = question_number + 2 + question_number + 3
             page.insert_text(
                 (405 + x_shift, y + 2),
                 str(answer),
@@ -127,9 +124,7 @@ def create_pdf(
                     page_number=page_number,
                 )
             elif variant != "white":
-                raise ValueError(
-                    f"Unknown page variant: {variant}"
-                )
+                raise ValueError(f"Unknown page variant: {variant}")
 
         return document.tobytes(
             garbage=4,
@@ -171,9 +166,7 @@ def test_rejects_invalid_similarity_threshold(
         ValueError,
         match="between 0 and 1",
     ):
-        OpenCvTemplateComparator(
-            similarity_threshold=invalid_threshold
-        )
+        OpenCvTemplateComparator(similarity_threshold=invalid_threshold)
 
 
 @pytest.mark.parametrize("invalid_dpi", [0, -1])
@@ -191,9 +184,7 @@ def test_rejects_nonpositive_render_dpi(
 def test_accepts_threshold_boundaries(
     threshold: float,
 ) -> None:
-    OpenCvTemplateComparator(
-        similarity_threshold=threshold
-    )
+    OpenCvTemplateComparator(similarity_threshold=threshold)
 
 
 def test_identical_templates_have_perfect_similarity(
@@ -274,9 +265,7 @@ def test_unrelated_templates_are_rejected(
     comparator: OpenCvTemplateComparator,
 ) -> None:
     exam_pdf = create_pdf(page_variants=("exam",))
-    unrelated_pdf = create_pdf(
-        page_variants=("unrelated",)
-    )
+    unrelated_pdf = create_pdf(page_variants=("unrelated",))
 
     result = comparator.compare(
         blank_pdf=exam_pdf,
@@ -291,9 +280,7 @@ def test_rejects_different_page_counts(
     comparator: OpenCvTemplateComparator,
 ) -> None:
     one_page_pdf = create_pdf(page_variants=("exam",))
-    two_page_pdf = create_pdf(
-        page_variants=("exam", "exam")
-    )
+    two_page_pdf = create_pdf(page_variants=("exam", "exam"))
 
     with pytest.raises(
         ValueError,
@@ -323,12 +310,8 @@ def test_rejects_zero_page_pdf(
 def test_one_bad_page_rejects_multi_page_template(
     comparator: OpenCvTemplateComparator,
 ) -> None:
-    blank_pdf = create_pdf(
-        page_variants=("exam", "exam")
-    )
-    correction_pdf = create_pdf(
-        page_variants=("exam", "unrelated")
-    )
+    blank_pdf = create_pdf(page_variants=("exam", "exam"))
+    correction_pdf = create_pdf(page_variants=("exam", "unrelated"))
 
     result = comparator.compare(
         blank_pdf=blank_pdf,
@@ -339,7 +322,5 @@ def test_one_bad_page_rejects_multi_page_template(
     assert [page.page_number for page in result.pages] == [1, 2]
     assert result.pages[0].similarity_score >= 0.90
     assert result.pages[1].similarity_score < 0.90
-    assert result.overall_similarity_score == (
-        result.pages[1].similarity_score
-    )
+    assert result.overall_similarity_score == (result.pages[1].similarity_score)
     assert result.is_compatible is False

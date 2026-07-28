@@ -18,14 +18,10 @@ class DocumentReference:
             raise ValueError("Document filename cannot be empty.")
 
         if len(self.sha256) != 64:
-            raise ValueError(
-                "Document SHA-256 hash must contain 64 characters."
-            )
+            raise ValueError("Document SHA-256 hash must contain 64 characters.")
 
         if any(character not in hexdigits for character in self.sha256):
-            raise ValueError(
-                "Document SHA-256 hash must be hexadecimal."
-            )
+            raise ValueError("Document SHA-256 hash must be hexadecimal.")
 
         if self.size_bytes <= 0:
             raise ValueError("Document size must be greater than zero.")

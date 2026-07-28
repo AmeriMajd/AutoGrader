@@ -35,8 +35,8 @@ app = FastAPI(
     version="0.1.0",
 )
 
-app.dependency_overrides[get_create_exam_package_use_case] = (
-    lambda: create_exam_package_use_case
+app.dependency_overrides[get_create_exam_package_use_case] = lambda: (
+    create_exam_package_use_case
 )
 
 app.include_router(exams_router)

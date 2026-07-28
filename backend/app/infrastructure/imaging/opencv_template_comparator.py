@@ -34,9 +34,7 @@ class OpenCvTemplateComparator:
         correction_pages = self._render_pages(correction_pdf)
 
         if len(blank_pages) != len(correction_pages):
-            raise ValueError(
-                "Blank and corrected PDFs must have the same page count."
-            )
+            raise ValueError("Blank and corrected PDFs must have the same page count.")
 
         comparisons = tuple(
             PageComparison(

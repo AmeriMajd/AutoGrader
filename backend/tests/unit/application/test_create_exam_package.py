@@ -39,13 +39,10 @@ class FakeExamRepository:
 
     def get_by_id(self, exam_id: UUID) -> Exam | None:
         return next(
-            (
-                exam
-                for exam in self.saved_exams
-                if exam.id == exam_id
-            ),
+            (exam for exam in self.saved_exams if exam.id == exam_id),
             None,
         )
+
 
 class FakeFileStorage:
     def __init__(self) -> None:
@@ -74,6 +71,7 @@ class FakeFileStorage:
     def delete(self, *, key: str) -> None:
         self.delete_calls.append(key)
         self.files.pop(key, None)
+
 
 class FakePdfInspector:
     def __init__(
@@ -123,9 +121,7 @@ class UseCaseContext:
 def create_inspection(
     *,
     hash_character: str = "a",
-    page_dimensions: tuple[tuple[float, float], ...] = (
-        (595.0, 842.0),
-    ),
+    page_dimensions: tuple[tuple[float, float], ...] = ((595.0, 842.0),),
 ) -> PdfInspection:
     return PdfInspection(
         sha256=hash_character * 64,
@@ -166,18 +162,13 @@ def create_context(
 
     inspector = FakePdfInspector(
         {
-            BLANK_CONTENT: blank_inspection or create_inspection(
-                hash_character="a"
-            ),
-            CORRECTION_CONTENT: correction_inspection or create_inspection(
-                hash_character="b"
-            ),
+            BLANK_CONTENT: blank_inspection or create_inspection(hash_character="a"),
+            CORRECTION_CONTENT: correction_inspection
+            or create_inspection(hash_character="b"),
         }
     )
 
-    comparator = FakeTemplateComparator(
-        comparison or create_comparison()
-    )
+    comparator = FakeTemplateComparator(comparison or create_comparison())
 
     use_case = CreateExamPackage(
         exam_repository=repository,
@@ -234,13 +225,12 @@ def test_stores_both_pdf_contents() -> None:
     assert exam.blank_document is not None
     assert exam.correction_document is not None
 
-    assert context.storage.files[
-        exam.blank_document.storage_key
-    ] == BLANK_CONTENT
+    assert context.storage.files[exam.blank_document.storage_key] == BLANK_CONTENT
 
-    assert context.storage.files[
-        exam.correction_document.storage_key
-    ] == CORRECTION_CONTENT
+    assert (
+        context.storage.files[exam.correction_document.storage_key]
+        == CORRECTION_CONTENT
+    )
 
 
 def test_generates_safe_storage_keys() -> None:
@@ -251,12 +241,8 @@ def test_generates_safe_storage_keys() -> None:
     assert exam.blank_document is not None
     assert exam.correction_document is not None
 
-    assert exam.blank_document.storage_key == (
-        f"exams/{exam.id}/blank.pdf"
-    )
-    assert exam.correction_document.storage_key == (
-        f"exams/{exam.id}/correction.pdf"
-    )
+    assert exam.blank_document.storage_key == (f"exams/{exam.id}/blank.pdf")
+    assert exam.correction_document.storage_key == (f"exams/{exam.id}/correction.pdf")
 
 
 def test_saves_exam_in_repository() -> None:
@@ -284,9 +270,7 @@ def test_compares_documents_before_storing() -> None:
 
     context.use_case.execute(create_command())
 
-    assert context.comparator.calls == [
-        (BLANK_CONTENT, CORRECTION_CONTENT)
-    ]
+    assert context.comparator.calls == [(BLANK_CONTENT, CORRECTION_CONTENT)]
 
 
 @pytest.mark.parametrize(
@@ -304,9 +288,7 @@ def test_invalid_pdf_does_not_store_or_save_exam(
     expected_inspection_calls: list[bytes],
 ) -> None:
     context = create_context()
-    context.inspector.errors[invalid_content] = InvalidPdfError(
-        "Invalid PDF"
-    )
+    context.inspector.errors[invalid_content] = InvalidPdfError("Invalid PDF")
 
     with pytest.raises(InvalidPdfError, match="Invalid PDF"):
         context.use_case.execute(create_command())
@@ -402,13 +384,11 @@ def test_rejects_visually_unrelated_template() -> None:
     ):
         context.use_case.execute(create_command())
 
-    assert context.comparator.calls == [
-        (BLANK_CONTENT, CORRECTION_CONTENT)
-    ]
+    assert context.comparator.calls == [(BLANK_CONTENT, CORRECTION_CONTENT)]
     assert context.storage.files == {}
     assert context.repository.saved_exams == []
-    
-    
+
+
 def test_first_storage_failure_leaves_no_files() -> None:
     context = create_context()
     context.storage.fail_on_save_call = 1
@@ -442,9 +422,7 @@ def test_second_storage_failure_removes_first_file() -> None:
 
 def test_repository_failure_removes_both_files() -> None:
     context = create_context()
-    context.repository.error = RuntimeError(
-        "Simulated repository failure"
-    )
+    context.repository.error = RuntimeError("Simulated repository failure")
 
     with pytest.raises(
         RuntimeError,
@@ -455,8 +433,7 @@ def test_repository_failure_removes_both_files() -> None:
     assert context.storage.files == {}
     assert len(context.storage.delete_calls) == 2
     assert {
-        key.rsplit("/", maxsplit=1)[-1]
-        for key in context.storage.delete_calls
+        key.rsplit("/", maxsplit=1)[-1] for key in context.storage.delete_calls
     } == {
         "blank.pdf",
         "correction.pdf",

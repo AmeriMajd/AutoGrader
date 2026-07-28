@@ -17,6 +17,7 @@ from app.domain.value_objects.document_reference import DocumentReference
 
 logger = logging.getLogger(__name__)
 
+
 class CreateExamPackage:
     def __init__(
         self,
@@ -31,12 +32,8 @@ class CreateExamPackage:
         self._template_comparator = template_comparator
 
     def execute(self, command: CreateExamPackageCommand) -> Exam:
-        blank_inspection = self._pdf_inspector.inspect(
-            command.blank_content
-        )
-        correction_inspection = self._pdf_inspector.inspect(
-            command.correction_content
-        )
+        blank_inspection = self._pdf_inspector.inspect(command.blank_content)
+        correction_inspection = self._pdf_inspector.inspect(command.correction_content)
 
         self._validate_matching_layout(
             blank_inspection,
@@ -100,7 +97,6 @@ class CreateExamPackage:
         inspection: PdfInspection,
     ) -> DocumentReference:
         storage_key = f"exams/{exam.id}/{role}.pdf"
-    
 
         document = DocumentReference(
             storage_key=storage_key,
@@ -126,9 +122,9 @@ class CreateExamPackage:
                 self._file_storage.delete(key=key)
             except Exception:
                 logger.exception(
-        "Failed to delete storage key %s during rollback.",
-        key,
-    )
+                    "Failed to delete storage key %s during rollback.",
+                    key,
+                )
 
     @staticmethod
     def _validate_matching_layout(
@@ -147,12 +143,10 @@ class CreateExamPackage:
             start=1,
         ):
             width_difference = abs(
-                blank_page.width_points
-                - correction_page.width_points
+                blank_page.width_points - correction_page.width_points
             )
             height_difference = abs(
-                blank_page.height_points
-                - correction_page.height_points
+                blank_page.height_points - correction_page.height_points
             )
 
             if (
