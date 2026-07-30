@@ -8,3 +8,11 @@ class PdfLayoutMismatchError(ValueError):
 
 class TemplateMismatchError(ValueError):
     """Raised when two PDFs do not appear to be the same exam template."""
+
+
+class ExamNotFoundError(LookupError):
+    """Raised when an exam cannot be found."""
+
+
+class ExamSourceDocumentsMissingError(RuntimeError):
+    """Raised when an exam has no complete source-document package."""

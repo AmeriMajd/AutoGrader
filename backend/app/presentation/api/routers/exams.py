@@ -6,12 +6,18 @@ from app.application.dto.create_exam_package import (
     CreateExamPackageCommand,
 )
 from app.application.errors import (
+    ExamNotFoundError,
+    ExamSourceDocumentsMissingError,
     InvalidPdfError,
     PdfLayoutMismatchError,
     TemplateMismatchError,
 )
 from app.application.use_cases.create_exam_package import CreateExamPackage
 from app.presentation.api.schemas.exams import ExamResponse
+from uuid import UUID
+from app.application.use_cases.analyze_exam_template import (
+    AnalyzeExamTemplate,
+)
 
 MAX_UPLOAD_SIZE_BYTES = 50 * 1024 * 1024
 
@@ -23,6 +29,10 @@ router = APIRouter(
 
 def get_create_exam_package_use_case() -> CreateExamPackage:
     raise RuntimeError("CreateExamPackage dependency has not been configured.")
+
+
+def get_analyze_exam_template_use_case() -> AnalyzeExamTemplate:
+    raise RuntimeError("AnalyzeExamTemplate dependency has not been configured.")
 
 
 @router.post(
@@ -65,6 +75,39 @@ async def create_exam_package(
         TemplateMismatchError,
         ValueError,
     ) as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(error),
+        ) from error
+
+    return ExamResponse.from_domain(exam)
+
+
+@router.post(
+    "/{exam_id}/analyze-template",
+    response_model=ExamResponse,
+    status_code=status.HTTP_200_OK,
+)
+def analyze_exam_template(
+    exam_id: UUID,
+    use_case: Annotated[
+        AnalyzeExamTemplate,
+        Depends(get_analyze_exam_template_use_case),
+    ],
+) -> ExamResponse:
+    try:
+        exam = use_case.execute(exam_id)
+    except ExamNotFoundError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
+    except ExamSourceDocumentsMissingError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
+    except ValueError as error:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=str(error),
