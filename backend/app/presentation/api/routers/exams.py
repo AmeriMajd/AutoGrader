@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
@@ -12,12 +13,11 @@ from app.application.errors import (
     PdfLayoutMismatchError,
     TemplateMismatchError,
 )
-from app.application.use_cases.create_exam_package import CreateExamPackage
-from app.presentation.api.schemas.exams import ExamResponse
-from uuid import UUID
 from app.application.use_cases.analyze_exam_template import (
     AnalyzeExamTemplate,
 )
+from app.application.use_cases.create_exam_package import CreateExamPackage
+from app.presentation.api.schemas.exams import ExamResponse
 
 MAX_UPLOAD_SIZE_BYTES = 50 * 1024 * 1024
 

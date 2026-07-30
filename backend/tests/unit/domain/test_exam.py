@@ -2,9 +2,9 @@ from datetime import UTC
 
 import pytest
 
+from app.domain.entities.answer_region import AnswerRegion
 from app.domain.entities.exam import Exam, ExamStatus
 from app.domain.value_objects.document_reference import DocumentReference
-from app.domain.entities.answer_region import AnswerRegion
 from app.domain.value_objects.normalized_bounding_box import (
     NormalizedBoundingBox,
 )
