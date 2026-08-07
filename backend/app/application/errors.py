@@ -16,3 +16,7 @@ class ExamNotFoundError(LookupError):
 
 class ExamSourceDocumentsMissingError(RuntimeError):
     """Raised when an exam has no complete source-document package."""
+
+
+class ExamAnswerRegionsMissingError(RuntimeError):
+    """Raised when an exam has no detected answer regions."""

@@ -7,6 +7,7 @@ from app.application.dto.create_exam_package import (
     CreateExamPackageCommand,
 )
 from app.application.errors import (
+    ExamAnswerRegionsMissingError,
     ExamNotFoundError,
     ExamSourceDocumentsMissingError,
     InvalidPdfError,
@@ -16,8 +17,21 @@ from app.application.errors import (
 from app.application.use_cases.analyze_exam_template import (
     AnalyzeExamTemplate,
 )
+from app.application.use_cases.generate_exam_analysis_preview import (
+    GenerateExamAnalysisPreview,
+)
 from app.application.use_cases.create_exam_package import CreateExamPackage
 from app.presentation.api.schemas.exams import ExamResponse
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Response,
+    UploadFile,
+    status,
+)
 
 MAX_UPLOAD_SIZE_BYTES = 50 * 1024 * 1024
 
@@ -29,6 +43,12 @@ router = APIRouter(
 
 def get_create_exam_package_use_case() -> CreateExamPackage:
     raise RuntimeError("CreateExamPackage dependency has not been configured.")
+
+
+def get_generate_exam_analysis_preview_use_case() -> GenerateExamAnalysisPreview:
+    raise RuntimeError(
+        "GenerateExamAnalysisPreview dependency has not been configured."
+    )
 
 
 def get_analyze_exam_template_use_case() -> AnalyzeExamTemplate:
@@ -114,6 +134,45 @@ def analyze_exam_template(
         ) from error
 
     return ExamResponse.from_domain(exam)
+
+
+@router.get(
+    "/{exam_id}/analysis-preview",
+    response_class=Response,
+    status_code=status.HTTP_200_OK,
+)
+def generate_exam_analysis_preview(
+    exam_id: UUID,
+    use_case: Annotated[
+        GenerateExamAnalysisPreview,
+        Depends(get_generate_exam_analysis_preview_use_case),
+    ],
+) -> Response:
+    try:
+        preview = use_case.execute(exam_id)
+    except ExamNotFoundError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
+    except (
+        ExamSourceDocumentsMissingError,
+        ExamAnswerRegionsMissingError,
+    ) as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
+
+    return Response(
+        content=preview,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": (
+                f'inline; filename="exam-{exam_id}-analysis-preview.pdf"'
+            )
+        },
+    )
 
 
 async def _read_upload(

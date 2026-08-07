@@ -8,11 +8,17 @@ from app.application.use_cases.analyze_exam_template import (
 from app.application.use_cases.create_exam_package import (
     CreateExamPackage,
 )
+from app.application.use_cases.generate_exam_analysis_preview import (
+    GenerateExamAnalysisPreview,
+)
 from app.infrastructure.imaging.opencv_correction_region_detector import (
     OpenCvCorrectionRegionDetector,
 )
 from app.infrastructure.imaging.opencv_template_comparator import (
     OpenCvTemplateComparator,
+)
+from app.infrastructure.pdf.pymupdf_exam_analysis_preview_renderer import (
+    PymupdfExamAnalysisPreviewRenderer,
 )
 from app.infrastructure.pdf.pypdf_pdf_inspector import (
     PypdfPdfInspector,
@@ -26,6 +32,7 @@ from app.infrastructure.storage.local_file_storage import (
 from app.presentation.api.routers.exams import (
     get_analyze_exam_template_use_case,
     get_create_exam_package_use_case,
+    get_generate_exam_analysis_preview_use_case,
 )
 from app.presentation.api.routers.exams import (
     router as exams_router,
@@ -36,6 +43,7 @@ file_storage = LocalFileStorage(Path("data"))
 pdf_inspector = PypdfPdfInspector()
 template_comparator = OpenCvTemplateComparator()
 correction_region_detector = OpenCvCorrectionRegionDetector()
+analysis_preview_renderer = PymupdfExamAnalysisPreviewRenderer()
 
 create_exam_package_use_case = CreateExamPackage(
     exam_repository=exam_repository,
@@ -50,6 +58,12 @@ analyze_exam_template_use_case = AnalyzeExamTemplate(
     region_detector=correction_region_detector,
 )
 
+generate_exam_analysis_preview_use_case = GenerateExamAnalysisPreview(
+    exam_repository=exam_repository,
+    file_storage=file_storage,
+    preview_renderer=analysis_preview_renderer,
+)
+
 app = FastAPI(
     title="AutoGrader API",
     version="0.1.0",
@@ -61,6 +75,10 @@ app.dependency_overrides[get_create_exam_package_use_case] = lambda: (
 
 app.dependency_overrides[get_analyze_exam_template_use_case] = lambda: (
     analyze_exam_template_use_case
+)
+
+app.dependency_overrides[get_generate_exam_analysis_preview_use_case] = lambda: (
+    generate_exam_analysis_preview_use_case
 )
 
 app.include_router(exams_router)
