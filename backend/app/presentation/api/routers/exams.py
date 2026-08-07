@@ -1,7 +1,16 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Response,
+    UploadFile,
+    status,
+)
 
 from app.application.dto.create_exam_package import (
     CreateExamPackageCommand,
@@ -17,21 +26,13 @@ from app.application.errors import (
 from app.application.use_cases.analyze_exam_template import (
     AnalyzeExamTemplate,
 )
+from app.application.use_cases.create_exam_package import (
+    CreateExamPackage,
+)
 from app.application.use_cases.generate_exam_analysis_preview import (
     GenerateExamAnalysisPreview,
 )
-from app.application.use_cases.create_exam_package import CreateExamPackage
 from app.presentation.api.schemas.exams import ExamResponse
-from fastapi import (
-    APIRouter,
-    Depends,
-    File,
-    Form,
-    HTTPException,
-    Response,
-    UploadFile,
-    status,
-)
 
 MAX_UPLOAD_SIZE_BYTES = 50 * 1024 * 1024
 
