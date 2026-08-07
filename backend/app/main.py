@@ -11,11 +11,17 @@ from app.application.use_cases.create_exam_package import (
 from app.application.use_cases.generate_exam_analysis_preview import (
     GenerateExamAnalysisPreview,
 )
+from app.application.use_cases.generate_exam_answer_crops import (
+    GenerateExamAnswerCrops,
+)
 from app.infrastructure.imaging.opencv_correction_region_detector import (
     OpenCvCorrectionRegionDetector,
 )
 from app.infrastructure.imaging.opencv_template_comparator import (
     OpenCvTemplateComparator,
+)
+from app.infrastructure.pdf.pymupdf_answer_region_cropper import (
+    PymupdfAnswerRegionCropper,
 )
 from app.infrastructure.pdf.pymupdf_exam_analysis_preview_renderer import (
     PymupdfExamAnalysisPreviewRenderer,
@@ -33,6 +39,7 @@ from app.presentation.api.routers.exams import (
     get_analyze_exam_template_use_case,
     get_create_exam_package_use_case,
     get_generate_exam_analysis_preview_use_case,
+    get_generate_exam_answer_crops_use_case,
 )
 from app.presentation.api.routers.exams import (
     router as exams_router,
@@ -44,6 +51,7 @@ pdf_inspector = PypdfPdfInspector()
 template_comparator = OpenCvTemplateComparator()
 correction_region_detector = OpenCvCorrectionRegionDetector()
 analysis_preview_renderer = PymupdfExamAnalysisPreviewRenderer()
+answer_region_cropper = PymupdfAnswerRegionCropper()
 
 create_exam_package_use_case = CreateExamPackage(
     exam_repository=exam_repository,
@@ -64,6 +72,12 @@ generate_exam_analysis_preview_use_case = GenerateExamAnalysisPreview(
     preview_renderer=analysis_preview_renderer,
 )
 
+generate_exam_answer_crops_use_case = GenerateExamAnswerCrops(
+    exam_repository=exam_repository,
+    file_storage=file_storage,
+    answer_region_cropper=answer_region_cropper,
+)
+
 app = FastAPI(
     title="AutoGrader API",
     version="0.1.0",
@@ -79,6 +93,10 @@ app.dependency_overrides[get_analyze_exam_template_use_case] = lambda: (
 
 app.dependency_overrides[get_generate_exam_analysis_preview_use_case] = lambda: (
     generate_exam_analysis_preview_use_case
+)
+
+app.dependency_overrides[get_generate_exam_answer_crops_use_case] = lambda: (
+    generate_exam_answer_crops_use_case
 )
 
 app.include_router(exams_router)

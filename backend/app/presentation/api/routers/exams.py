@@ -1,5 +1,7 @@
+from io import BytesIO
 from typing import Annotated
 from uuid import UUID
+from zipfile import ZIP_DEFLATED, ZipFile
 
 from fastapi import (
     APIRouter,
@@ -32,6 +34,9 @@ from app.application.use_cases.create_exam_package import (
 from app.application.use_cases.generate_exam_analysis_preview import (
     GenerateExamAnalysisPreview,
 )
+from app.application.use_cases.generate_exam_answer_crops import (
+    GenerateExamAnswerCrops,
+)
 from app.presentation.api.schemas.exams import ExamResponse
 
 MAX_UPLOAD_SIZE_BYTES = 50 * 1024 * 1024
@@ -50,6 +55,10 @@ def get_generate_exam_analysis_preview_use_case() -> GenerateExamAnalysisPreview
     raise RuntimeError(
         "GenerateExamAnalysisPreview dependency has not been configured."
     )
+
+
+def get_generate_exam_answer_crops_use_case() -> GenerateExamAnswerCrops:
+    raise RuntimeError("GenerateExamAnswerCrops dependency has not been configured.")
 
 
 def get_analyze_exam_template_use_case() -> AnalyzeExamTemplate:
@@ -171,6 +180,56 @@ def generate_exam_analysis_preview(
         headers={
             "Content-Disposition": (
                 f'inline; filename="exam-{exam_id}-analysis-preview.pdf"'
+            )
+        },
+    )
+
+
+@router.get(
+    "/{exam_id}/answer-crops",
+    response_class=Response,
+    status_code=status.HTTP_200_OK,
+)
+def generate_exam_answer_crops(
+    exam_id: UUID,
+    use_case: Annotated[
+        GenerateExamAnswerCrops,
+        Depends(get_generate_exam_answer_crops_use_case),
+    ],
+) -> Response:
+    try:
+        crops = use_case.execute(exam_id)
+    except ExamNotFoundError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
+    except (
+        ExamSourceDocumentsMissingError,
+        ExamAnswerRegionsMissingError,
+    ) as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
+
+    archive_buffer = BytesIO()
+
+    with ZipFile(
+        archive_buffer,
+        mode="w",
+        compression=ZIP_DEFLATED,
+    ) as archive:
+        for crop in crops:
+            filename = f"page-{crop.page_number:04d}-region-{crop.region_id}.png"
+            archive.writestr(filename, crop.content)
+
+    return Response(
+        content=archive_buffer.getvalue(),
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": (
+                f'attachment; filename="exam-{exam_id}-answer-crops.zip"'
             )
         },
     )
